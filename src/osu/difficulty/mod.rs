@@ -1,7 +1,7 @@
 use std::{cmp, pin::Pin};
 
 use rosu_map::section::general::GameMode;
-use skills::{aim::Aim, flashlight::Flashlight, speed::Speed, strain::OsuStrainSkill};
+use skills::{aim::Aim, speed::Speed, strain::OsuStrainSkill};
 
 use crate::{
     any::difficulty::{skills::StrainSkill, Difficulty},
@@ -124,9 +124,7 @@ impl DifficultyValues {
     pub fn eval(attrs: &mut OsuDifficultyAttributes, mods: &GameMods, skills: &OsuSkills) {
         let OsuSkills {
             aim,
-            aim_no_sliders,
             speed,
-            flashlight,
         } = skills;
 
         let aim_difficulty_value = aim.cloned_difficulty_value();
@@ -136,49 +134,30 @@ impl DifficultyValues {
 
         let difficult_sliders = aim.get_difficult_sliders();
 
-        let aim_rating_no_sliders =
-            f64::sqrt(aim_no_sliders.cloned_difficulty_value()) * DIFFICULTY_MULTIPLIER;
-
-        let slider_factor = if aim_rating > 0.0 {
-            aim_rating_no_sliders / aim_rating
-        } else {
-            1.0
-        };
 
         let speed_difficulty_value = speed.cloned_difficulty_value();
         let mut speed_rating = f64::sqrt(speed_difficulty_value) * DIFFICULTY_MULTIPLIER;
         let speed_difficult_strain_count = speed.count_top_weighted_strains(speed_difficulty_value);
 
-        let mut flashlight_rating =
-            f64::sqrt(flashlight.cloned_difficulty_value()) * DIFFICULTY_MULTIPLIER;
 
         if mods.td() {
             aim_rating = aim_rating.powf(0.8);
-            flashlight_rating = flashlight_rating.powf(0.8);
         }
 
         if mods.rx() {
             aim_rating *= 0.9;
             speed_rating = 0.0;
-            flashlight_rating *= 0.7;
         } else if mods.ap() {
             speed_rating *= 0.5;
             aim_rating = 0.0;
-            flashlight_rating *= 0.4;
         }
 
         let base_aim_performance = Aim::difficulty_to_performance(aim_rating);
         let base_speed_performance = Speed::difficulty_to_performance(speed_rating);
 
-        let base_flashlight_performance = if mods.fl() {
-            Flashlight::difficulty_to_performance(flashlight_rating)
-        } else {
-            0.0
-        };
 
-        let base_performance = ((base_aim_performance).powf(1.1)
+        let base_performance = (base_aim_performance).powf(1.1)
             + (base_speed_performance).powf(1.1)
-            + (base_flashlight_performance).powf(1.1))
         .powf(1.0 / 1.1);
 
         let star_rating = if base_performance > 0.00001 {
@@ -192,8 +171,6 @@ impl DifficultyValues {
         attrs.aim = aim_rating;
         attrs.aim_difficult_slider_count = difficult_sliders;
         attrs.speed = speed_rating;
-        attrs.flashlight = flashlight_rating;
-        attrs.slider_factor = slider_factor;
         attrs.aim_difficult_strain_count = aim_difficult_strain_count;
         attrs.speed_difficult_strain_count = speed_difficult_strain_count;
         attrs.stars = star_rating;

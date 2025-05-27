@@ -3,7 +3,7 @@ use std::f64::consts::PI;
 use crate::{
     osu::{
         difficulty::skills::{
-            aim::Aim, flashlight::Flashlight, speed::Speed, strain::OsuStrainSkill,
+            aim::Aim, speed::Speed, strain::OsuStrainSkill,
         },
         OsuDifficultyAttributes, OsuPerformanceAttributes, OsuScoreState,
     },
@@ -345,36 +345,7 @@ impl OsuPerformanceCalculator<'_> {
     }
 
     fn compute_flashlight_value(&self) -> f64 {
-        if !self.mods.fl() {
-            return 0.0;
-        }
-
-        let mut flashlight_value = Flashlight::difficulty_to_performance(self.attrs.flashlight);
-
-        let total_hits = self.total_hits();
-
-        // * Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
-        if self.effective_miss_count > 0.0 {
-            flashlight_value *= 0.97
-                * (1.0 - (self.effective_miss_count / total_hits).powf(0.775))
-                    .powf(self.effective_miss_count.powf(0.875));
-        }
-
-        flashlight_value *= self.get_combo_scaling_factor();
-
-        // * Account for shorter maps having a higher ratio of 0 combo/100 combo flashlight radius.
-        flashlight_value *= 0.7
-            + 0.1 * (total_hits / 200.0).min(1.0)
-            + f64::from(u8::from(total_hits > 200.0))
-                * 0.2
-                * ((total_hits - 200.0) / 200.0).min(1.0);
-
-        // * Scale the flashlight value with accuracy _slightly_.
-        flashlight_value *= 0.5 + self.acc / 2.0;
-        // * It is important to also consider accuracy difficulty when doing that.
-        flashlight_value *= 0.98 + f64::powf(f64::max(0.0, self.attrs.od()), 2.0) / 2500.0;
-
-        flashlight_value
+        0.0
     }
 
     fn calculate_speed_deviation(&self) -> Option<f64> {

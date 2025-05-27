@@ -15,15 +15,21 @@ use crate::{
 
 use super::strain::OsuStrainSkill;
 
+#[derive(Clone, Copy)]
+pub enum AimType {
+    All,
+    Flow,
+    Jump,
+    Raw,
+}
+
 define_skill! {
     #[derive(Clone)]
     pub struct Aim: StrainSkill => [OsuDifficultyObject<'a>][OsuDifficultyObject<'a>] {
         radius: f64,
         has_hidden: bool,
         has_fl: bool,
-        flow_aim: bool,
-        jump_aim: bool,
-        raw_aim: bool,
+        aim_type: AimType,
         current_strain: f64 = 0.0,
         slider_strains: Vec<f64> = Vec::with_capacity(64), // TODO: use `StrainsVec`?
         evaluator: AimEvaluator = AimEvaluator::new(),
@@ -53,7 +59,7 @@ impl Aim {
         objects: &[OsuDifficultyObject<'_>],
     ) -> f64 {
         self.current_strain *= strain_decay(curr.delta_time, Self::STRAIN_DECAY_BASE);
-        self.current_strain += self.evaluator.evaluate_diff_of(curr, objects, self.radius, self.has_hidden, self.has_fl, self.flow_aim, self.jump_aim, self.raw_aim)
+        self.current_strain += self.evaluator.evaluate_diff_of(curr, objects, self.radius, self.has_hidden, self.has_fl, self.aim_type)
             * Self::SKILL_MULTIPLIER;
 
         if curr.base.is_slider() {
@@ -93,41 +99,31 @@ impl Aim {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct PreemptOsuObject {
-    pub idx: usize,
     pub start_time: f64,
     pub jump_dist: f64,
     pub base_flow: f64,
-    pub flow: f64,
-    pub preempt: f64,
 }
 
 impl From<&OsuDifficultyObject<'_>> for PreemptOsuObject {
     fn from(obj: &OsuDifficultyObject<'_>) -> Self {
         Self {
-            idx: obj.idx,
             start_time: obj.start_time,
             jump_dist: obj.jump_dist,
             base_flow: obj.base_flow,
-            flow: obj.flow,
-            preempt: obj.preempt,
         }
     }
 }
 
 impl OsuStrainSkill for Aim {}
 
+#[derive(Clone)]
 struct AimEvaluator {
     preempt_hit_objects: VecDeque<PreemptOsuObject>
 }
 
 impl AimEvaluator {
-    const WIDE_ANGLE_MULTIPLIER: f64 = 1.5;
-    const ACUTE_ANGLE_MULTIPLIER: f64 = 2.6;
-    const SLIDER_MULTIPLIER: f64 = 1.35;
-    const VELOCITY_CHANGE_MULTIPLIER: f64 = 0.75;
-    const WIGGLE_MULTIPLIER: f64 = 1.02;
-
     const fn new() -> Self {
         Self {
             preempt_hit_objects: VecDeque::new(),
@@ -143,23 +139,17 @@ impl AimEvaluator {
         radius: f64,
         has_hidden: bool,
         has_fl: bool,
-        flow_aim: bool,
-        jump_aim: bool,
-        raw_aim: bool,
+        aim_type: AimType,
     ) -> f64 {
         let osu_curr_obj = curr;
 
         let prev2s: [Option<&OsuDifficultyObject>; 2] = [curr.previous(0, diff_objects), curr.previous(1, diff_objects)];
 
-        let aim = if flow_aim {
-            Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) * Self::calc_small_circle_bonus(radius)
-        } else if jump_aim {
-            Self::calc_jump_aim_value(osu_curr_obj, &prev2s) * Self::calc_small_circle_bonus(radius)
-        } else if raw_aim {
-            Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) + Self::calc_jump_aim_value(osu_curr_obj, &prev2s)
-        } else {
-            (Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) + Self::calc_jump_aim_value(osu_curr_obj, &prev2s))
-                * Self::calc_small_circle_bonus(radius)
+        let aim = match aim_type {
+            AimType::All => (Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) + Self::calc_jump_aim_value(osu_curr_obj, &prev2s)) * Self::calc_small_circle_bonus(radius),
+            AimType::Flow => Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) * Self::calc_small_circle_bonus(radius),
+            AimType::Jump => Self::calc_jump_aim_value(osu_curr_obj, &prev2s) * Self::calc_small_circle_bonus(radius),
+            AimType::Raw => Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) + Self::calc_jump_aim_value(osu_curr_obj, &prev2s)
         };
         
         let reading_multiplier = self.calc_reading_multiplier(

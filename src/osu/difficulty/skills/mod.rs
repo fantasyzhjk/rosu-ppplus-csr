@@ -4,21 +4,19 @@ use crate::{
     osu::object::OsuObject,
 };
 
-use self::{aim::Aim, flashlight::Flashlight, speed::Speed};
+use self::{aim::Aim, speed::Speed};
 
 use super::{
     object::OsuDifficultyObject, scaling_factor::ScalingFactor, HD_FADE_IN_DURATION_MULTIPLIER,
 };
 
 pub mod aim;
-pub mod flashlight;
 pub mod speed;
 pub mod strain;
 
 pub struct OsuSkills {
     pub aim: Aim,
     pub speed: Speed,
-    pub flashlight: Flashlight,
 }
 
 impl OsuSkills {
@@ -44,23 +42,20 @@ impl OsuSkills {
             400.0 * (time_preempt / OsuObject::PREEMPT_MIN).min(1.0)
         };
 
-        let aim = Aim::new(scaling_factor.radius, mods.hd(), mods.fl(),false, false, false);
-        let flow_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), true, false, false);
-        let jump_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), false, true, false);
-        let raw_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), false, false, true);
+        let aim = Aim::new(scaling_factor.radius, mods.hd(), mods.fl(), aim::AimType::All);
+        let flow_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), aim::AimType::Flow);
+        let jump_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), aim::AimType::Jump);
+        let raw_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), aim::AimType::Raw);
         let speed = Speed::new(hit_window, mods.ap());
-        let flashlight = Flashlight::new(mods, scaling_factor.radius, time_preempt, time_fade_in);
 
         Self {
             aim,
             speed,
-            flashlight,
         }
     }
 
     pub fn process(&mut self, curr: &OsuDifficultyObject<'_>, objects: &[OsuDifficultyObject<'_>]) {
         self.aim.process(curr, objects);
         self.speed.process(curr, objects);
-        self.flashlight.process(curr, objects);
     }
 }
