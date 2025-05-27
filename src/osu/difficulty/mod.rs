@@ -106,7 +106,7 @@ impl DifficultyValues {
         let osu_object_iter = osu_objects.iter_mut().map(Pin::new);
 
         let diff_objects =
-            Self::create_difficulty_objects(difficulty, &scaling_factor, osu_object_iter);
+            Self::create_difficulty_objects(difficulty, &scaling_factor, osu_object_iter, time_preempt);
 
         let mut skills = OsuSkills::new(mods, &scaling_factor, &map_attrs, time_preempt);
 
@@ -204,6 +204,7 @@ impl DifficultyValues {
         difficulty: &Difficulty,
         scaling_factor: &ScalingFactor,
         osu_objects: impl ExactSizeIterator<Item = Pin<&'a mut OsuObject>>,
+        time_preempt: f64
     ) -> Vec<OsuDifficultyObject<'a>> {
         let take = difficulty.get_passed_objects();
         let clock_rate = difficulty.get_clock_rate();
@@ -212,29 +213,46 @@ impl DifficultyValues {
             .map(|h| OsuDifficultyObject::compute_slider_cursor_pos(h, scaling_factor.radius))
             .map(Pin::into_ref);
 
-        let Some(mut last) = osu_objects_iter.next().filter(|_| take > 0) else {
+        let Some(last) = osu_objects_iter.next().filter(|_| take > 0) else {
             return Vec::new();
         };
 
-        let mut last_last = None;
+        let mut last = last.get_ref();
 
-        osu_objects_iter
+        let mut last_last = None;
+        let mut last_diff_object: Option<&OsuDifficultyObject> = None;
+        let mut last_last_diff_object: Option<&OsuDifficultyObject> = None;
+
+        let mut diff_objects: Vec<OsuDifficultyObject<'a>> = osu_objects_iter
             .enumerate()
             .map(|(idx, h)| {
                 let diff_object = OsuDifficultyObject::new(
                     h.get_ref(),
-                    last.get_ref(),
-                    last_last.as_deref(),
-                    clock_rate,
                     idx,
-                    scaling_factor,
                 );
-
-                last_last = Some(last);
-                last = h;
 
                 diff_object
             })
-            .collect()
+            .collect();
+
+        for diff_object in diff_objects.iter_mut() {
+            diff_object.run(
+                last,
+                last_last,
+                last_diff_object,
+                last_last_diff_object,
+                clock_rate,
+                time_preempt,
+                scaling_factor,
+            );
+
+            last_last_diff_object = last_diff_object;
+            last_diff_object = Some(diff_object);
+
+            last_last = Some(last);
+            last = diff_object.base;
+        }
+
+        diff_objects
     }
 }

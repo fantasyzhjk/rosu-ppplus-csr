@@ -9,6 +9,7 @@ pub mod sort;
 pub mod special_functions;
 pub mod strains_vec;
 pub mod sync;
+pub mod pplus;
 
 #[macro_use]
 mod macros;

@@ -17,7 +17,6 @@ pub mod strain;
 
 pub struct OsuSkills {
     pub aim: Aim,
-    pub aim_no_sliders: Aim,
     pub speed: Speed,
     pub flashlight: Flashlight,
 }
@@ -45,14 +44,15 @@ impl OsuSkills {
             400.0 * (time_preempt / OsuObject::PREEMPT_MIN).min(1.0)
         };
 
-        let aim = Aim::new(true);
-        let aim_no_sliders = Aim::new(false);
+        let aim = Aim::new(scaling_factor.radius, mods.hd(), mods.fl(),false, false, false);
+        let flow_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), true, false, false);
+        let jump_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), false, true, false);
+        let raw_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), false, false, true);
         let speed = Speed::new(hit_window, mods.ap());
         let flashlight = Flashlight::new(mods, scaling_factor.radius, time_preempt, time_fade_in);
 
         Self {
             aim,
-            aim_no_sliders,
             speed,
             flashlight,
         }
@@ -60,7 +60,6 @@ impl OsuSkills {
 
     pub fn process(&mut self, curr: &OsuDifficultyObject<'_>, objects: &[OsuDifficultyObject<'_>]) {
         self.aim.process(curr, objects);
-        self.aim_no_sliders.process(curr, objects);
         self.speed.process(curr, objects);
         self.flashlight.process(curr, objects);
     }
