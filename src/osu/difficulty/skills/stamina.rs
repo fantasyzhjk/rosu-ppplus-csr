@@ -1,3 +1,4 @@
+use std::{cmp, f64::consts::PI};
 
 use crate::{
     any::difficulty::{
@@ -6,6 +7,7 @@ use crate::{
     },
     osu::difficulty::object::OsuDifficultyObject,
     util::{
+        difficulty::{bpm_to_milliseconds, logistic, milliseconds_to_bpm},
         strains_vec::StrainsVec,
     },
 };
@@ -14,16 +16,15 @@ use super::strain::OsuStrainSkill;
 
 define_skill! {
     #[derive(Clone)]
-    pub struct Speed: StrainSkill => [OsuDifficultyObject<'a>][OsuDifficultyObject<'a>] {
+    pub struct Stamina: StrainSkill => [OsuDifficultyObject<'a>][OsuDifficultyObject<'a>] {
         current_strain: f64 = 0.0,
         current_rhythm: f64 = 0.0,
     }
 }
 
-impl Speed {
-    const SKILL_MULTIPLIER: f64 = 2600.0;
-    const STRAIN_DECAY_BASE: f64 = 0.1;
-    const REDUCED_SECTION_COUNT: usize = 5;
+impl Stamina {
+    const SKILL_MULTIPLIER: f64 = 2600.0 * 0.3;
+    const STRAIN_DECAY_BASE: f64 = 0.45;
 
     fn calculate_initial_strain(
         &mut self,
@@ -45,7 +46,7 @@ impl Speed {
         _objects: &[OsuDifficultyObject<'_>],
     ) -> f64 {
         self.current_strain *= strain_decay(curr.strain_time, Self::STRAIN_DECAY_BASE);
-        self.current_strain += SpeedEvaluator::evaluate_diff_of(
+        self.current_strain += StaminaEvaluator::evaluate_diff_of(
             curr,
         ) * Self::SKILL_MULTIPLIER;
 
@@ -64,20 +65,19 @@ impl Speed {
     }
 }
 
-impl OsuStrainSkill for Speed {}
+impl OsuStrainSkill for Stamina {}
 
-struct SpeedEvaluator;
+struct StaminaEvaluator;
 
-impl SpeedEvaluator {
+impl StaminaEvaluator {
 
     fn evaluate_diff_of<'a>(
         curr: &'a OsuDifficultyObject<'a>,
     ) -> f64 {
         let ms = curr.last_two_strain_time / 2.0;
         
-        // Curves are similar to 2.5 / ms for tapValue and 1 / ms for streamValue, but scale better at high BPM.
-        let tap_value = 30.0 / (ms - 20.0).powf(2.0) + 2.0 / ms;
-        let stream_value = 12.5 / (ms - 20.0).powf(2.0) + 0.25 / ms + 0.005;
+        let tap_value = 2.0 / (ms - 20.0);
+        let stream_value = 1.0 / (ms - 20.0);
 
         (1.0 - curr.flow) * tap_value + curr.flow * stream_value
     }

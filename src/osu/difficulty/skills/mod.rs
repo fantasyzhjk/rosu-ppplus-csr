@@ -12,7 +12,9 @@ use super::{
 
 pub mod aim;
 pub mod speed;
+pub mod stamina;
 pub mod strain;
+pub mod rhythm_complexity;
 
 pub struct OsuSkills {
     pub aim: Aim,
@@ -46,7 +48,7 @@ impl OsuSkills {
         let flow_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), aim::AimType::Flow);
         let jump_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), aim::AimType::Jump);
         let raw_aim = Aim::new(scaling_factor.radius, mods.hd(),mods.fl(), aim::AimType::Raw);
-        let speed = Speed::new(hit_window, mods.ap());
+        let speed = Speed::new();
 
         Self {
             aim,

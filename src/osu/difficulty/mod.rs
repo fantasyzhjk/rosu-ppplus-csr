@@ -174,7 +174,6 @@ impl DifficultyValues {
         attrs.aim_difficult_strain_count = aim_difficult_strain_count;
         attrs.speed_difficult_strain_count = speed_difficult_strain_count;
         attrs.stars = star_rating;
-        attrs.speed_note_count = speed.relevant_note_count();
     }
 
     pub fn create_difficulty_objects<'a>(

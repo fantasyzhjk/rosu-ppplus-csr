@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, f64::consts::{FRAC_PI_2, PI}};
+use std::{collections::VecDeque, f64::consts::PI};
 
 use rosu_map::util::Pos;
 
@@ -9,7 +9,7 @@ use crate::{
     },
     osu::{difficulty::object::OsuDifficultyObject, PLAYFIELD_BASE_SIZE},
     util::{
-        difficulty::{milliseconds_to_bpm, reverse_lerp, smootherstep, smoothstep}, float_ext::FloatExt, pplus, strains_vec::StrainsVec
+        float_ext::FloatExt, pplus, strains_vec::StrainsVec
     },
 };
 
@@ -162,25 +162,14 @@ impl AimEvaluator {
         aim * reading_multiplier
     }
 
-    const fn calc_wide_angle_bonus(angle: f64) -> f64 {
-        smoothstep(angle, f64::to_radians(40.0), f64::to_radians(140.0))
-    }
-
-    const fn calc_acute_angle_bonus(angle: f64) -> f64 {
-        smoothstep(angle, f64::to_radians(140.0), f64::to_radians(40.0))
-    }
-
     
     fn calc_jump_aim_value(
         curr: &OsuDifficultyObject,
         prev2s: &[Option<&OsuDifficultyObject>; 2],
     ) -> f64 {
-        // if (curr.flow - 1.0).abs() < f64::EPSILON {
-        //     return 0.0;
-        // };
-        if curr.flow == 1.0 {
+        if (curr.flow - 1.0).abs() < f64::EPSILON {
             return 0.0;
-        };
+        }
 
         let distance = curr.jump_dist / OsuDifficultyObject::NORMALIZED_RADIUS;
 
@@ -212,7 +201,7 @@ impl AimEvaluator {
     fn calc_flow_aim_value(curr: &OsuDifficultyObject, prev: Option<&OsuDifficultyObject>) -> f64 {
         if curr.flow == 0.0 {
             return 0.0;
-        };
+        }
 
         let distance = curr.jump_dist / OsuDifficultyObject::NORMALIZED_RADIUS;
 
@@ -333,7 +322,7 @@ impl AimEvaluator {
             let distance_bonus = if distance_rate <= 0.0 {
                 distance_rate * distance_rate
             } else if distance_rate < 1.0 {
-                (-((PI * distance_rate).cos()) + 1.0) / 2.0
+                f64::midpoint(-((PI * distance_rate).cos()), 1.0)
             } else {
                 1.0
             };
@@ -353,17 +342,17 @@ impl AimEvaluator {
                         pangle.abs() - cangle.abs()
                     };
                     angle_bonus =
-                        (-((angle_change / 2.0).sin() * PI).cos() + 1.0) / 2.0;
+                        f64::midpoint(-((angle_change / 2.0).sin() * PI).cos(), 1.0);
                 } else if cangle.abs() < pangle.abs() {
                     let angle_change = cangle - pangle;
                     angle_bonus =
-                        (-((angle_change / 2.0).sin() * PI).cos() + 1.0) / 2.0;
-                };
+                        f64::midpoint(-((angle_change / 2.0).sin() * PI).cos(), 1.0);
+                }
 
                 if angle_bonus > 0.0 {
                     let angle_change = cangle.abs() - pangle.abs();
                     angle_bonus =
-                        ((-((angle_change / 2.0).sin() * PI).cos() + 1.0) / 2.0)
+                        f64::midpoint(-((angle_change / 2.0).sin() * PI).cos(), 1.0)
                             .min(angle_bonus);
                 }
 
