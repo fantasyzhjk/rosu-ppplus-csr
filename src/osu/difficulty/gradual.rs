@@ -110,7 +110,7 @@ impl OsuGradualDifficulty {
             time_preempt
         );
 
-        let skills = OsuSkills::new(mods, &scaling_factor, &map_attrs, time_preempt);
+        let skills = OsuSkills::new(mods, &scaling_factor, &map_attrs, time_preempt, difficulty.get_lazer());
         let diff_objects = extend_lifetime(diff_objects.into_boxed_slice());
 
         Ok(Self {
@@ -160,7 +160,12 @@ impl Iterator for OsuGradualDifficulty {
             let curr = self.diff_objects.get(self.idx - 1)?;
 
             self.skills.aim.process(curr, &self.diff_objects);
+            self.skills.raw_aim.process(curr, &self.diff_objects);
+            self.skills.jump_aim.process(curr, &self.diff_objects);
+            self.skills.flow_aim.process(curr, &self.diff_objects);
             self.skills.speed.process(curr, &self.diff_objects);
+            self.skills.stamina.process(curr, &self.diff_objects);
+            self.skills.rhythm_complexity.process(curr, &self.diff_objects);
 
             Self::increment_combo(curr.base, &mut self.attrs);
         } else if self.osu_objects.is_empty() {

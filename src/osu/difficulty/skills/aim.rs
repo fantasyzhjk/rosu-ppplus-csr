@@ -90,7 +90,7 @@ impl Aim {
     // From `OsuStrainSkill`; native rather than trait function so that it has
     // priority over `StrainSkill::difficulty_value`
     fn difficulty_value(current_strain_peaks: StrainsVec) -> f64 {
-        super::strain::difficulty_value(
+        super::strain::difficulty_value_old(
             current_strain_peaks,
             Self::REDUCED_SECTION_COUNT,
             Self::REDUCED_STRAIN_BASELINE,
@@ -146,7 +146,12 @@ impl AimEvaluator {
         let prev2s: [Option<&OsuDifficultyObject>; 2] = [curr.previous(0, diff_objects), curr.previous(1, diff_objects)];
 
         let aim = match aim_type {
-            AimType::All => (Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) + Self::calc_jump_aim_value(osu_curr_obj, &prev2s)) * Self::calc_small_circle_bonus(radius),
+            AimType::All => {
+                let jump_aim = Self::calc_jump_aim_value(osu_curr_obj, &prev2s);
+                let flow_aim = Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]);
+                let small_circle_bonus = Self::calc_small_circle_bonus(radius);
+                (jump_aim + flow_aim) * small_circle_bonus
+            },
             AimType::Flow => Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) * Self::calc_small_circle_bonus(radius),
             AimType::Jump => Self::calc_jump_aim_value(osu_curr_obj, &prev2s) * Self::calc_small_circle_bonus(radius),
             AimType::Raw => Self::calc_flow_aim_value(osu_curr_obj, prev2s[0]) + Self::calc_jump_aim_value(osu_curr_obj, &prev2s)

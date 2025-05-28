@@ -1,10 +1,10 @@
 use std::{borrow::Cow, pin::Pin};
 
-use rosu_map::util::Pos;
+use rosu_map::{section::hit_objects::CurveBuffers, util::Pos};
 
 use crate::{
     any::difficulty::object::{HasStartTime, IDifficultyObject},
-    osu::object::{OsuObject, OsuObjectKind, OsuSlider}, util::pplus,
+    osu::object::{OsuObject, OsuObjectKind, OsuSlider}, util::{pplus, float_ext::FloatExt},
 };
 
 use super::{scaling_factor::ScalingFactor, HD_FADE_OUT_DURATION_MULTIPLIER};
@@ -67,6 +67,20 @@ impl<'a> OsuDifficultyObject<'a> {
         this
     }
 
+    fn rescale_low_strain_time(
+        strain_time: f64,
+        min_strain_time: f64,
+        target_min_strain_time: f64,
+        low_strain_time_threshold: f64,
+    ) -> f64 {
+        if strain_time < low_strain_time_threshold {
+            let t = (strain_time - min_strain_time) / min_strain_time;
+            f64::lerp(target_min_strain_time, low_strain_time_threshold, t)
+        } else {
+            strain_time
+        }
+    }
+
     pub fn run(
         &mut self,
         last_object: &'a OsuObject,
@@ -82,9 +96,10 @@ impl<'a> OsuDifficultyObject<'a> {
         self.end_time = self.base.end_time() / clock_rate;
         
         self.set_distances(last_object, last_last_object, clock_rate, scaling_factor);
-
+        
         self.preempt = time_preempt / clock_rate;
         self.strain_time = self.delta_time.max(Self::MIN_DELTA_TIME);
+        
         self.stream_bpm = 15000.0 / self.strain_time;
 
         if let Some(last_last_object) = last_last_object {
@@ -99,25 +114,12 @@ impl<'a> OsuDifficultyObject<'a> {
             self.gap_time = ((self.base.start_time - last_object.end_time()) / clock_rate).max(Self::MIN_DELTA_TIME);
         }
 
-        fn rescale_low_strain_time(
-            strain_time: f64,
-            min_strain_time: f64,
-            target_min_strain_time: f64,
-            low_strain_time_threshold: f64,
-        ) -> f64 {
-            if strain_time < low_strain_time_threshold {
-                // 线性插值：lerp(a, b, t) = a + t * (b - a)
-                let t = (strain_time - min_strain_time) / min_strain_time;
-                target_min_strain_time + t * (low_strain_time_threshold - target_min_strain_time)
-            } else {
-                strain_time
-            }
-        }
-
-        self.strain_time = rescale_low_strain_time(self.strain_time, 25.0, 30.0, 50.0);
-        self.last_two_strain_time = rescale_low_strain_time(self.last_two_strain_time, 50.0, 60.0, 100.0);
-        self.gap_time = rescale_low_strain_time(self.strain_time, 25.0, 30.0, 50.0);
-
+        
+        self.strain_time = Self::rescale_low_strain_time(self.strain_time, 25.0, 30.0, 50.0);
+        self.last_two_strain_time = Self::rescale_low_strain_time(self.last_two_strain_time, 50.0, 60.0, 100.0);
+        self.gap_time = Self::rescale_low_strain_time(self.gap_time, 25.0, 30.0, 50.0);
+        
+        
         self.set_flow_values(last_diff_object, last_last_diff_object);
     }
 
@@ -199,12 +201,12 @@ impl<'a> OsuDifficultyObject<'a> {
     }
 
     fn calculate_angle_scaling_factor(angle: Option<f64>, last_diff_object: &OsuDifficultyObject) -> f64 {
-        if !pplus::is_null_or_nan(angle) {
+        if pplus::is_null_or_nan(angle) {
+            0.5
+        } else {
             let angle = angle.unwrap();
             let angle_scaling_factor = (-((angle.cos() * std::f64::consts::PI / 2.0).sin()) + 3.0) / 4.0;
             angle_scaling_factor + (1.0 - angle_scaling_factor) * last_diff_object.angle_leniency
-        } else {
-            0.5
         }
     }
 
@@ -278,7 +280,7 @@ impl<'a> OsuDifficultyObject<'a> {
             let dot = v1.dot(v2);
             let det = v1.x * v2.y - v1.y * v2.x;
 
-            self.angle = Some(f64::from((det.atan2(dot)).abs()));
+            self.angle = Some((f64::from(det).atan2(f64::from(dot))).abs());
         }
     }
 
@@ -302,29 +304,16 @@ impl<'a> OsuDifficultyObject<'a> {
         let nested = nested.as_ref();
 
         let mut curr_cursor_pos = pos + stack_offset;
-        let scaling_factor = f64::from(OsuDifficultyObject::NORMALIZED_RADIUS) / radius;
+        let approx_follow_circle_radius = radius * 3.0;
 
         for (curr_movement_obj, i) in nested.iter().zip(1..) {
             let mut curr_movement = curr_movement_obj.pos + stack_offset - curr_cursor_pos;
-            let mut curr_movement_len = scaling_factor * f64::from(curr_movement.length());
-            let mut required_movement = f64::from(OsuDifficultyObject::ASSUMED_SLIDER_RADIUS);
+            let mut curr_movement_len = f64::from(curr_movement.length());
 
-            if i == nested.len() {
-                let lazy_movement = slider.lazy_end_pos - curr_cursor_pos;
-
-                if lazy_movement.length() < curr_movement.length() {
-                    curr_movement = lazy_movement;
-                }
-
-                curr_movement_len = scaling_factor * f64::from(curr_movement.length());
-            } else if curr_movement_obj.is_repeat() {
-                required_movement = f64::from(OsuDifficultyObject::NORMALIZED_RADIUS);
-            }
-
-            if curr_movement_len > required_movement {
-                curr_cursor_pos += curr_movement
-                    * ((curr_movement_len - required_movement) / curr_movement_len) as f32;
-                curr_movement_len *= (curr_movement_len - required_movement) / curr_movement_len;
+            if curr_movement_len > approx_follow_circle_radius {
+                curr_movement = curr_movement.normalize();
+                curr_movement_len -= approx_follow_circle_radius;
+                curr_cursor_pos += curr_movement * curr_movement_len as f32;
                 slider.lazy_travel_dist += curr_movement_len as f32;
             }
 

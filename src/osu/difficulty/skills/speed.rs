@@ -16,14 +16,12 @@ define_skill! {
     #[derive(Clone)]
     pub struct Speed: StrainSkill => [OsuDifficultyObject<'a>][OsuDifficultyObject<'a>] {
         current_strain: f64 = 0.0,
-        current_rhythm: f64 = 0.0,
     }
 }
 
 impl Speed {
     const SKILL_MULTIPLIER: f64 = 2600.0;
     const STRAIN_DECAY_BASE: f64 = 0.1;
-    const REDUCED_SECTION_COUNT: usize = 5;
 
     fn calculate_initial_strain(
         &mut self,
@@ -35,8 +33,7 @@ impl Speed {
             .previous(0, objects)
             .map_or(0.0, HasStartTime::start_time);
 
-        (self.current_strain * self.current_rhythm)
-            * strain_decay(time - prev_start_time, Self::STRAIN_DECAY_BASE)
+        self.current_strain * strain_decay(time - prev_start_time, Self::STRAIN_DECAY_BASE)
     }
 
     fn strain_value_at(
@@ -49,13 +46,13 @@ impl Speed {
             curr,
         ) * Self::SKILL_MULTIPLIER;
 
-        self.current_strain * self.current_rhythm
+        self.current_strain
     }
 
     // From `OsuStrainSkill`; native rather than trait function so that it has
     // priority over `StrainSkill::difficulty_value`
     fn difficulty_value(current_strain_peaks: StrainsVec) -> f64 {
-        super::strain::difficulty_value(
+        super::strain::difficulty_value_old(
             current_strain_peaks,
             Self::REDUCED_SECTION_COUNT,
             Self::REDUCED_STRAIN_BASELINE,

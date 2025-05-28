@@ -18,7 +18,6 @@ define_skill! {
     #[derive(Clone)]
     pub struct Stamina: StrainSkill => [OsuDifficultyObject<'a>][OsuDifficultyObject<'a>] {
         current_strain: f64 = 0.0,
-        current_rhythm: f64 = 0.0,
     }
 }
 
@@ -36,8 +35,7 @@ impl Stamina {
             .previous(0, objects)
             .map_or(0.0, HasStartTime::start_time);
 
-        (self.current_strain * self.current_rhythm)
-            * strain_decay(time - prev_start_time, Self::STRAIN_DECAY_BASE)
+        self.current_strain * strain_decay(time - prev_start_time, Self::STRAIN_DECAY_BASE)
     }
 
     fn strain_value_at(
@@ -50,13 +48,13 @@ impl Stamina {
             curr,
         ) * Self::SKILL_MULTIPLIER;
 
-        self.current_strain * self.current_rhythm
+        self.current_strain
     }
 
     // From `OsuStrainSkill`; native rather than trait function so that it has
     // priority over `StrainSkill::difficulty_value`
     fn difficulty_value(current_strain_peaks: StrainsVec) -> f64 {
-        super::strain::difficulty_value(
+        super::strain::difficulty_value_old(
             current_strain_peaks,
             Self::REDUCED_SECTION_COUNT,
             Self::REDUCED_STRAIN_BASELINE,

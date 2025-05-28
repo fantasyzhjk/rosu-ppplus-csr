@@ -108,7 +108,7 @@ impl DifficultyValues {
         let diff_objects =
             Self::create_difficulty_objects(difficulty, &scaling_factor, osu_object_iter, time_preempt);
 
-        let mut skills = OsuSkills::new(mods, &scaling_factor, &map_attrs, time_preempt);
+        let mut skills = OsuSkills::new(mods, &scaling_factor, &map_attrs, time_preempt, difficulty.get_lazer());
 
         // The first hit object has no difficulty object
         let take_diff_objects = cmp::min(map.hit_objects.len(), take).saturating_sub(1);
@@ -124,21 +124,36 @@ impl DifficultyValues {
     pub fn eval(attrs: &mut OsuDifficultyAttributes, mods: &GameMods, skills: &OsuSkills) {
         let OsuSkills {
             aim,
+            raw_aim,
+            jump_aim,
+            flow_aim,
             speed,
+            stamina,
+            rhythm_complexity,
         } = skills;
-
         let aim_difficulty_value = aim.cloned_difficulty_value();
+        let raw_aim_difficulty_value = raw_aim.cloned_difficulty_value();
+        let jump_aim_difficulty_value = jump_aim.cloned_difficulty_value();
+        let flow_aim_difficulty_value = flow_aim.cloned_difficulty_value();
+        let speed_difficulty_value = speed.cloned_difficulty_value();
+        let stamina_difficulty_value = stamina.cloned_difficulty_value();
+        let rhythm_difficulty_value = rhythm_complexity.cloned_difficulty_value();
 
         let mut aim_rating = aim_difficulty_value.sqrt() * DIFFICULTY_MULTIPLIER;
+        let jump_aim_rating = jump_aim_difficulty_value.sqrt() * DIFFICULTY_MULTIPLIER;
+        let flow_aim_rating = flow_aim_difficulty_value.sqrt() * DIFFICULTY_MULTIPLIER;
+        let precision_rating = (aim_difficulty_value - raw_aim_difficulty_value).max(0.0).sqrt() * DIFFICULTY_MULTIPLIER;
+        let mut speed_rating = speed_difficulty_value.sqrt() * DIFFICULTY_MULTIPLIER;
+        let stamina_rating = stamina_difficulty_value.sqrt() * DIFFICULTY_MULTIPLIER;
+        let accuracy_rating = rhythm_difficulty_value.sqrt();
+
+
         let aim_difficult_strain_count = aim.count_top_weighted_strains(aim_difficulty_value);
-
-        let difficult_sliders = aim.get_difficult_sliders();
-
-
-        let speed_difficulty_value = speed.cloned_difficulty_value();
-        let mut speed_rating = f64::sqrt(speed_difficulty_value) * DIFFICULTY_MULTIPLIER;
+        let jump_aim_difficult_strain_count = jump_aim.count_top_weighted_strains(raw_aim_difficulty_value);
+        let flow_aim_difficult_strain_count = flow_aim.count_top_weighted_strains(flow_aim_difficulty_value);
         let speed_difficult_strain_count = speed.count_top_weighted_strains(speed_difficulty_value);
-
+        let stamina_difficult_strain_count = stamina.count_top_weighted_strains(stamina_difficulty_value);
+        let difficult_sliders = aim.get_difficult_sliders();
 
         if mods.td() {
             aim_rating = aim_rating.powf(0.8);
@@ -147,32 +162,30 @@ impl DifficultyValues {
         if mods.rx() {
             aim_rating *= 0.9;
             speed_rating = 0.0;
-        } else if mods.ap() {
+        } else if mods.ap() { // 这个pp+没有，这边保留osu原装代码
             speed_rating *= 0.5;
             aim_rating = 0.0;
         }
 
-        let base_aim_performance = Aim::difficulty_to_performance(aim_rating);
-        let base_speed_performance = Speed::difficulty_to_performance(speed_rating);
+        // sr计算改到下面来
+        // 注释的这个倍率作废，这个是应用新strain方法后的倍率
+        // let star_rating = (aim_rating.powf(3.0) + speed_rating.max(stamina_rating).powf(3.0)).powf(1.0 / 3.0) * 1.63;
+        let star_rating = (aim_rating.powf(3.0) + speed_rating.max(stamina_rating).powf(3.0)).powf(1.0 / 3.0) * 1.6;
 
-
-        let base_performance = (base_aim_performance).powf(1.1)
-            + (base_speed_performance).powf(1.1)
-        .powf(1.0 / 1.1);
-
-        let star_rating = if base_performance > 0.00001 {
-            PERFORMANCE_BASE_MULTIPLIER.cbrt()
-                * 0.027
-                * ((100_000.0 / 2.0_f64.powf(1.0 / 1.1) * base_performance).cbrt() + 4.0)
-        } else {
-            0.0
-        };
 
         attrs.aim = aim_rating;
         attrs.aim_difficult_slider_count = difficult_sliders;
+        attrs.jump = jump_aim_rating;
+        attrs.flow = flow_aim_rating;
+        attrs.precision = precision_rating;
         attrs.speed = speed_rating;
+        attrs.stamina = stamina_rating;
+        attrs.accuracy = accuracy_rating;
         attrs.aim_difficult_strain_count = aim_difficult_strain_count;
+        attrs.jump_aim_difficult_strain_count = jump_aim_difficult_strain_count;
+        attrs.flow_aim_difficult_strain_count = flow_aim_difficult_strain_count;
         attrs.speed_difficult_strain_count = speed_difficult_strain_count;
+        attrs.stamina_difficult_strain_count = stamina_difficult_strain_count;
         attrs.stars = star_rating;
     }
 

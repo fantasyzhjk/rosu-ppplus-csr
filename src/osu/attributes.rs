@@ -7,18 +7,32 @@ pub struct OsuDifficultyAttributes {
     pub aim: f64,
     /// The number of sliders weighted by difficulty.
     pub aim_difficult_slider_count: f64,
+    /// The difficulty of the jump skill.
+    pub jump: f64,
+    /// The difficulty of the flow skill.
+    pub flow: f64,
+    /// The difficulty of the precision skill.
+    pub precision: f64,
     /// The difficulty of the speed skill.
     pub speed: f64,
-    /// The difficulty of the flashlight skill.
-    pub flashlight: f64,
+    /// The difficulty of the stamina skill.
+    pub stamina: f64,
+    /// The difficulty of the accuracy skill.
+    pub accuracy: f64,
     /// The ratio of the aim strain with and without considering sliders
     pub slider_factor: f64,
     /// The number of clickable objects weighted by difficulty.
     pub speed_note_count: f64,
     /// Weighted sum of aim strains.
     pub aim_difficult_strain_count: f64,
+    /// Weighted sum of jump aim strains.
+    pub jump_aim_difficult_strain_count: f64,
+    /// Weighted sum of flow aim strains.
+    pub flow_aim_difficult_strain_count: f64,
     /// Weighted sum of speed strains.
     pub speed_difficult_strain_count: f64,
+    /// Weighted sum of stamina strains.
+    pub stamina_difficult_strain_count: f64,
     /// The approach rate.
     pub ar: f64,
     /// The great hit window.
@@ -79,18 +93,22 @@ pub struct OsuPerformanceAttributes {
     pub difficulty: OsuDifficultyAttributes,
     /// The final performance points.
     pub pp: f64,
-    /// The accuracy portion of the final pp.
-    pub pp_acc: f64,
     /// The aim portion of the final pp.
     pub pp_aim: f64,
-    /// The flashlight portion of the final pp.
-    pub pp_flashlight: f64,
+    /// The jump aim portion of the final pp.
+    pub pp_jump_aim: f64,
+    /// The flow aim portion of the final pp.
+    pub pp_flow_aim: f64,
+    /// The precision portion of the final pp.
+    pub pp_precision: f64,
     /// The speed portion of the final pp.
     pub pp_speed: f64,
+    /// The stamina portion of the final pp.
+    pub pp_stamina: f64,
+    /// The acc portion of the final pp.
+    pub pp_acc: f64,
     /// Misses including an approximated amount of slider breaks
     pub effective_miss_count: f64,
-    /// Approximated unstable-rate
-    pub speed_deviation: Option<f64>,
 }
 
 impl OsuPerformanceAttributes {
