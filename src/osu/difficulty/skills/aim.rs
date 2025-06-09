@@ -86,17 +86,6 @@ impl Aim {
             .map(|strain| 1.0 / (1.0 + f64::exp(-(strain / max_slider_strain * 12.0 - 6.0))))
             .sum()
     }
-
-    // From `OsuStrainSkill`; native rather than trait function so that it has
-    // priority over `StrainSkill::difficulty_value`
-    fn difficulty_value(current_strain_peaks: StrainsVec) -> f64 {
-        super::strain::difficulty_value_old(
-            current_strain_peaks,
-            Self::REDUCED_SECTION_COUNT,
-            Self::REDUCED_STRAIN_BASELINE,
-            Self::DECAY_WEIGHT,
-        )
-    }
 }
 
 #[derive(Copy, Clone)]

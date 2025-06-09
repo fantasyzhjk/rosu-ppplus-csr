@@ -48,17 +48,6 @@ impl Speed {
 
         self.current_strain
     }
-
-    // From `OsuStrainSkill`; native rather than trait function so that it has
-    // priority over `StrainSkill::difficulty_value`
-    fn difficulty_value(current_strain_peaks: StrainsVec) -> f64 {
-        super::strain::difficulty_value_old(
-            current_strain_peaks,
-            Self::REDUCED_SECTION_COUNT,
-            Self::REDUCED_STRAIN_BASELINE,
-            Self::DECAY_WEIGHT,
-        )
-    }
 }
 
 impl OsuStrainSkill for Speed {}

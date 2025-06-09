@@ -19,10 +19,6 @@ pub struct OsuDifficultyAttributes {
     pub stamina: f64,
     /// The difficulty of the accuracy skill.
     pub accuracy: f64,
-    /// The ratio of the aim strain with and without considering sliders
-    pub slider_factor: f64,
-    /// The number of clickable objects weighted by difficulty.
-    pub speed_note_count: f64,
     /// Weighted sum of aim strains.
     pub aim_difficult_strain_count: f64,
     /// Weighted sum of jump aim strains.
