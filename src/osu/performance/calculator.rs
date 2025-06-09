@@ -128,12 +128,6 @@ impl OsuPerformanceCalculator<'_> {
         let speed_weight = self.calculate_speed_weight(normalized_hit_error);
         let accuracy_weight = self.calculate_accuracy_weight(accuracy_hit_objects_count);
 
-        println!("{}", Self::calculate_skill_value(self.attrs.jump));
-        println!(
-            "{}",
-            self.calculate_miss_weight(self.attrs.jump_aim_difficult_strain_count)
-        );
-
         // Calculate skill values
         let aim_value = aim_weight
             * Self::calculate_skill_value(self.attrs.aim)
