@@ -3,27 +3,27 @@ use crate::{model::beatmap::BeatmapAttributesBuilder, osu::performance::OsuPerfo
 /// The result of a difficulty calculation on an osu!standard map.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct OsuDifficultyAttributes {
-    /// The difficulty of the aim skill.
+    /// The difficulty of `Aim`.
     pub aim: f64,
     /// The number of sliders weighted by difficulty.
     pub aim_difficult_slider_count: f64,
-    /// The difficulty of the jump skill.
+    /// The difficulty of `JumpAim`.
     pub jump: f64,
-    /// The difficulty of the flow skill.
+    /// The difficulty of `FlowAim`.
     pub flow: f64,
-    /// The difficulty of the precision skill.
+    /// The difficulty of `Precision`.
     pub precision: f64,
     /// The difficulty of the speed skill.
     pub speed: f64,
     /// The difficulty of the stamina skill.
     pub stamina: f64,
-    /// The difficulty of the accuracy skill.
+    /// The difficulty of `RhythmComplexity`, i.e. the same as its `stars` value.
     pub accuracy: f64,
-    /// Weighted sum of aim strains.
+    /// Weighted sum of `Aim` strains.
     pub aim_difficult_strain_count: f64,
-    /// Weighted sum of jump aim strains.
+    /// Weighted sum of `JumpAim` strains.
     pub jump_aim_difficult_strain_count: f64,
-    /// Weighted sum of flow aim strains.
+    /// Weighted sum of `FlowAim` strains.
     pub flow_aim_difficult_strain_count: f64,
     /// Weighted sum of speed strains.
     pub speed_difficult_strain_count: f64,
@@ -89,13 +89,13 @@ pub struct OsuPerformanceAttributes {
     pub difficulty: OsuDifficultyAttributes,
     /// The final performance points.
     pub pp: f64,
-    /// The aim portion of the final pp.
+    /// The `Aim` portion of the final pp.
     pub pp_aim: f64,
-    /// The jump aim portion of the final pp.
+    /// The `JumpAim` portion of the final pp.
     pub pp_jump_aim: f64,
-    /// The flow aim portion of the final pp.
+    /// The `FlowAim` portion of the final pp.
     pub pp_flow_aim: f64,
-    /// The precision portion of the final pp.
+    /// The `Precision` portion of the final pp.
     pub pp_precision: f64,
     /// The speed portion of the final pp.
     pub pp_speed: f64,

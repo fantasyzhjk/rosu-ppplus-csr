@@ -1,0 +1,28 @@
+[package]
+name = "rosu-ppplus-py"
+version = "3.1.0"
+edition = "2021"
+authors = ["bobbycyl <bobbycyl@126.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/bobbycyl/rosu-ppplus-csr"
+description = "Python bindings for rosu-ppplus-csr"
+keywords = ["osu", "pp", "stars", "performance", "difficulty"]
+
+[lib]
+name = "rosu_ppplus"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.28", features = ["extension-module", "macros"] }
+# The ppplus-csr fork is used through a path dependency so that this crate
+# always builds against the local source instead of a published version.
+rosu-pp = { path = ".." }
+rosu-mods = { version = "0.3.0", features = ["serde"] }
+serde = { version = "1.0.203" }
+
+[profile.release]
+lto = true
+panic = "abort"
+codegen-units = 1
+strip = true

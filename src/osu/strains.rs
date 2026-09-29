@@ -9,13 +9,13 @@ use super::difficulty::{skills::OsuSkills, DifficultyValues};
 /// Suitable to plot the difficulty of a map over time.
 #[derive(Clone, Debug, PartialEq)]
 pub struct OsuStrains {
-    /// Strain peaks of the aim skill.
+    /// Strain peaks of `Aim`.
     pub aim: Vec<f64>,
-    /// Strain peaks of the raw aim skill.
+    /// Strain peaks of `RawAim`.
     pub raw_aim: Vec<f64>,
-    /// Strain peaks of the jump aim skill.
+    /// Strain peaks of `JumpAim`.
     pub jump_aim: Vec<f64>,
-    /// Strain peaks of the flow aim skill.
+    /// Strain peaks of `FlowAim`.
     pub flow_aim: Vec<f64>,
     /// Strain peaks of the speed skill.
     pub speed: Vec<f64>,

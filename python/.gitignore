@@ -1,0 +1,25 @@
+target/
+.venv/
+venv/
+
+# maturin / editable installs
+*.pyd
+*.so
+*.dylib
+*.egg-info/
+dist/
+build/
+
+# Python tooling
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+uv.lock
+
+# Keep the lockfile: this crate pins the local fork through a path
+# dependency, so its resolved graph is worth tracking.
+!Cargo.lock
+
+# The root .gitignore ignores `output*` for debug dumps, which would also
+# swallow this real source file.
+!src/output.rs

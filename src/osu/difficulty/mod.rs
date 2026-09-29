@@ -24,7 +24,7 @@ mod object;
 pub mod scaling_factor;
 pub mod skills;
 
-const DIFFICULTY_MULTIPLIER: f64 = 0.0675;
+pub(crate) const DIFFICULTY_MULTIPLIER: f64 = 0.0675;
 
 const HD_FADE_IN_DURATION_MULTIPLIER: f64 = 0.4;
 const HD_FADE_OUT_DURATION_MULTIPLIER: f64 = 0.3;
@@ -42,6 +42,21 @@ pub fn difficulty(
     DifficultyValues::eval(&mut attrs, mods, &skills);
 
     Ok(attrs)
+}
+
+/// Calculate the ppplus-csr skill values of an osu!standard map.
+///
+/// On top of the regular difficulty attributes this returns the separated
+/// `FlowAim` and `JumpAim` as well as the `RhythmComplexity` values.
+pub fn skill_output(
+    difficulty: &Difficulty,
+    map: &Beatmap,
+) -> Result<skills::OsuSkillsOutput, ConvertError> {
+    let map = map.convert_ref(GameMode::Osu, difficulty.get_mods())?;
+
+    let DifficultyValues { skills, .. } = DifficultyValues::calculate(difficulty, &map);
+
+    Ok(skills.skill_output())
 }
 
 pub struct OsuDifficultySetup {
@@ -149,7 +164,7 @@ impl DifficultyValues {
 
 
         let aim_difficult_strain_count = aim.count_top_weighted_strains(aim_difficulty_value);
-        let jump_aim_difficult_strain_count = jump_aim.count_top_weighted_strains(raw_aim_difficulty_value);
+        let jump_aim_difficult_strain_count = jump_aim.count_top_weighted_strains(jump_aim_difficulty_value);
         let flow_aim_difficult_strain_count = flow_aim.count_top_weighted_strains(flow_aim_difficulty_value);
         let speed_difficult_strain_count = speed.count_top_weighted_strains(speed_difficulty_value);
         let stamina_difficult_strain_count = stamina.count_top_weighted_strains(stamina_difficulty_value);

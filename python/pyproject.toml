@@ -1,0 +1,42 @@
+[build-system]
+requires = ["maturin>=1,<2"]
+build-backend = "maturin"
+
+[project]
+name = "rosu-ppplus-py"
+version = "3.1.0"
+requires-python = ">=3.9"
+description = "Difficulty and performance calculation for osu!, with ppplus-csr skills"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+authors = [{ name = "bobbycyl", email = "bobbycyl@126.com" }]
+readme = "README.md"
+license = "MIT"
+keywords = ["osu", "pp", "stars", "performance", "difficulty"]
+
+[tool.maturin]
+manifest-path = "Cargo.toml"
+features = ["pyo3/extension-module"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "B",
+    "SIM",
+]
+ignore = ["E501"]  # docstrings in stubs are hard to wrap
+
+[tool.ruff.lint.isort]
+known-first-party = ["rosu_ppplus"]

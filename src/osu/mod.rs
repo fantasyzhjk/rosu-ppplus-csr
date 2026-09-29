@@ -10,7 +10,11 @@ use crate::{
 
 pub use self::{
     attributes::{OsuDifficultyAttributes, OsuPerformanceAttributes},
-    difficulty::gradual::OsuGradualDifficulty,
+    difficulty::{
+        gradual::OsuGradualDifficulty,
+        skill_output,
+        skills::{aim::AimSkillOutput, rhythm_complexity::RhythmComplexityOutput, OsuSkillsOutput},
+    },
     performance::{gradual::OsuGradualPerformance, OsuPerformance},
     score_state::{OsuScoreOrigin, OsuScoreState},
     strains::OsuStrains,
