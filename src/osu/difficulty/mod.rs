@@ -149,7 +149,7 @@ impl DifficultyValues {
 
 
         let aim_difficult_strain_count = aim.count_top_weighted_strains(aim_difficulty_value);
-        let jump_aim_difficult_strain_count = jump_aim.count_top_weighted_strains(raw_aim_difficulty_value);
+        let jump_aim_difficult_strain_count = jump_aim.count_top_weighted_strains(jump_aim_difficulty_value);
         let flow_aim_difficult_strain_count = flow_aim.count_top_weighted_strains(flow_aim_difficulty_value);
         let speed_difficult_strain_count = speed.count_top_weighted_strains(speed_difficulty_value);
         let stamina_difficult_strain_count = stamina.count_top_weighted_strains(stamina_difficulty_value);
