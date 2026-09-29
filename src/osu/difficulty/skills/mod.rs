@@ -29,6 +29,56 @@ pub struct OsuSkills {
     pub rhythm_complexity: RhythmComplexity,
 }
 
+/// The ppplus-csr skill values of an osu!standard difficulty calculation.
+///
+/// This bundles the values that ppplus-csr adds on top of upstream `rosu-pp`,
+/// i.e. the separated `FlowAim` and `JumpAim` as well as `RhythmComplexity`.
+/// It is mainly intended for bindings and tooling.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct OsuSkillsOutput {
+    /// The overall `Aim`.
+    ///
+    /// Unlike [`OsuDifficultyAttributes::aim`], this value is not adjusted by
+    /// the TD, RX, or AP mods; its `stars` field is the rating the skill
+    /// produces on its own.
+    ///
+    /// [`OsuDifficultyAttributes::aim`]: crate::osu::OsuDifficultyAttributes::aim
+    pub aim: aim::AimSkillOutput,
+    /// The `FlowAim` skill.
+    pub flow_aim: aim::AimSkillOutput,
+    /// The `JumpAim` skill.
+    pub jump_aim: aim::AimSkillOutput,
+    /// The `RawAim` skill.
+    pub raw_aim: aim::AimSkillOutput,
+    /// The `Precision` rating, derived from `Aim - RawAim`.
+    pub precision: f64,
+    /// The `RhythmComplexity` skill.
+    pub rhythm_complexity: rhythm_complexity::RhythmComplexityOutput,
+}
+
+impl OsuSkills {
+    /// Collect the ppplus-csr skill values of this calculation.
+    pub fn skill_output(&self) -> OsuSkillsOutput {
+        let aim = self.aim.skill_output();
+        let raw_aim = self.raw_aim.skill_output();
+
+        // Same formula as `DifficultyValues::eval`
+        let precision = (aim.difficulty_value - raw_aim.difficulty_value)
+            .max(0.0)
+            .sqrt()
+            * crate::osu::difficulty::DIFFICULTY_MULTIPLIER;
+
+        OsuSkillsOutput {
+            aim,
+            flow_aim: self.flow_aim.skill_output(),
+            jump_aim: self.jump_aim.skill_output(),
+            raw_aim,
+            precision,
+            rhythm_complexity: self.rhythm_complexity.skill_output(),
+        }
+    }
+}
+
 impl OsuSkills {
     pub fn new(
         mods: &GameMods,

@@ -24,7 +24,7 @@ mod object;
 pub mod scaling_factor;
 pub mod skills;
 
-const DIFFICULTY_MULTIPLIER: f64 = 0.0675;
+pub(crate) const DIFFICULTY_MULTIPLIER: f64 = 0.0675;
 
 const HD_FADE_IN_DURATION_MULTIPLIER: f64 = 0.4;
 const HD_FADE_OUT_DURATION_MULTIPLIER: f64 = 0.3;
@@ -42,6 +42,21 @@ pub fn difficulty(
     DifficultyValues::eval(&mut attrs, mods, &skills);
 
     Ok(attrs)
+}
+
+/// Calculate the ppplus-csr skill values of an osu!standard map.
+///
+/// On top of the regular difficulty attributes this returns the separated
+/// `FlowAim` and `JumpAim` as well as the `RhythmComplexity` values.
+pub fn skill_output(
+    difficulty: &Difficulty,
+    map: &Beatmap,
+) -> Result<skills::OsuSkillsOutput, ConvertError> {
+    let map = map.convert_ref(GameMode::Osu, difficulty.get_mods())?;
+
+    let DifficultyValues { skills, .. } = DifficultyValues::calculate(difficulty, &map);
+
+    Ok(skills.skill_output())
 }
 
 pub struct OsuDifficultySetup {

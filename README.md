@@ -139,6 +139,47 @@ Using `rosu-pp` from other languages than Rust:
 - JavaScript: [rosu-pp-js]
 - Python: [rosu-pp-py]
 
+This fork ships its own Python bindings in [`python/`](./python/README.md).
+On top of the regular difficulty and performance attributes they expose the
+ppplus-csr additions:
+
+- `FlowAim` and `JumpAim` as separate aim skills
+- `RawAim` plus the `Precision` derived from `Aim - RawAim`
+- `RhythmComplexity`
+
+```sh
+pip install maturin
+cd python
+maturin develop --release
+```
+
+```python
+import rosu_ppplus as rosu
+
+map = rosu.Beatmap(path="map.osu")
+diff = rosu.Difficulty(mods="HDHR")
+
+skills = diff.skills(map)
+print(skills.flow.stars, skills.jump.stars, skills.rhythm_complexity.stars)
+```
+
+### Exposing ppplus values from Rust
+
+The ppplus-csr skill values are also reachable from plain Rust through
+`rosu_pp::osu::skill_output`, which returns an `OsuSkillsOutput` with the
+`Aim`, `FlowAim`, `JumpAim`, and `RawAim` skills as well as
+`RhythmComplexity`. This is purely additive and does not change the regular
+difficulty attributes.
+
+```rust
+let difficulty = rosu_pp::Difficulty::new().mods(8 + 16); // HDHR
+let skills = rosu_pp::osu::skill_output(&difficulty, &map).unwrap();
+
+println!("flow: {}", skills.flow_aim.stars);
+println!("jump: {}", skills.jump_aim.stars);
+println!("accuracy: {}", skills.rhythm_complexity.stars);
+```
+
 [osu!]: https://osu.ppy.sh/home
 [osu!lazer]: https://github.com/ppy/osu
 [osu!tools]: https://github.com/ppy/osu-tools

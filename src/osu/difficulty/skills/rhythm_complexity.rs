@@ -54,6 +54,62 @@ impl RhythmComplexity {
             jump_total: 0.0,
         }
     }
+
+    /// The difficulty value that is based solely on hit circles.
+    pub fn hit_circle_difficulty_value(&self) -> f64 {
+        Self::calc_difficulty_value_for(self.difficulty_total, self.hit_circle_count)
+    }
+
+    /// The difficulty value that also considers slider heads.
+    pub fn slider_accuracy_difficulty_value(&self) -> f64 {
+        Self::calc_difficulty_value_for(
+            self.difficulty_total_slider_acc,
+            self.accuracy_object_count,
+        )
+    }
+
+    /// Collect the values of this skill that are relevant for ppplus-csr.
+    ///
+    /// This is a convenience for bindings and tooling; it does not influence
+    /// the regular difficulty calculation.
+    pub fn skill_output(&self) -> RhythmComplexityOutput {
+        let difficulty_value = self.cloned_difficulty_value();
+
+        RhythmComplexityOutput {
+            stars: difficulty_value.sqrt(),
+            difficulty_value,
+            hit_circle_difficulty_value: self.hit_circle_difficulty_value(),
+            slider_accuracy_difficulty_value: self.slider_accuracy_difficulty_value(),
+            accuracy_object_count: self.accuracy_object_count,
+            hit_circle_count: self.hit_circle_count,
+            flow_total: self.flow_total,
+            jump_total: self.jump_total,
+            slider_accuracy_enabled: self.is_slider_acc,
+        }
+    }
+}
+
+/// Values of [`RhythmComplexity`] as used by ppplus-csr bindings and tooling.
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
+pub struct RhythmComplexityOutput {
+    /// Star rating of the skill, i.e. the same as `OsuDifficultyAttributes::accuracy`.
+    pub stars: f64,
+    /// The un-square-rooted difficulty value.
+    pub difficulty_value: f64,
+    /// The difficulty value considering only hit circles.
+    pub hit_circle_difficulty_value: f64,
+    /// The difficulty value additionally considering slider heads.
+    pub slider_accuracy_difficulty_value: f64,
+    /// Amount of objects that contributed to the accuracy calculation.
+    pub accuracy_object_count: i32,
+    /// Amount of hit circles.
+    pub hit_circle_count: i32,
+    /// Total accumulated flow value of all objects.
+    pub flow_total: f64,
+    /// Total accumulated jump distance of all objects, in osu!pixels.
+    pub jump_total: f64,
+    /// Whether the map was parsed with slider accuracy.
+    pub slider_accuracy_enabled: bool,
 }
 
 impl StrainSkill for RhythmComplexity {
