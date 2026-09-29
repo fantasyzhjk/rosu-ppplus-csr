@@ -43,7 +43,9 @@ class TestScoreParameters:
         attrs = hdhr_diff.calculate(osu_map)
 
         full = hdhr_diff.performance(attrs, accuracy=99.0, combo=attrs.max_combo).pp
-        half = hdhr_diff.performance(attrs, accuracy=99.0, combo=attrs.max_combo // 2).pp
+        half = hdhr_diff.performance(
+            attrs, accuracy=99.0, combo=attrs.max_combo // 2
+        ).pp
 
         assert half <= full
 

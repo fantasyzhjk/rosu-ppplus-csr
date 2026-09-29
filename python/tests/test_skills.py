@@ -189,7 +189,9 @@ class TestRhythmComplexity:
     def test_difficulty_value_is_the_max_of_both_variants(self, hdhr_diff, osu_map):
         rc = hdhr_diff.rhythm_complexity(osu_map)
 
-        expected = max(rc.hit_circle_difficulty_value, rc.slider_accuracy_difficulty_value)
+        expected = max(
+            rc.hit_circle_difficulty_value, rc.slider_accuracy_difficulty_value
+        )
 
         assert rc.difficulty_value == pytest.approx(expected)
 

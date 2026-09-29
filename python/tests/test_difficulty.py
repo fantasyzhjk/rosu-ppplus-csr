@@ -18,7 +18,9 @@ class TestConstruction:
         assert rosu.Difficulty(mods="") is not None
 
     def test_mods_dict(self):
-        diff = rosu.Difficulty(mods={"acronym": "DT", "settings": {"speed_change": 1.1}})
+        diff = rosu.Difficulty(
+            mods={"acronym": "DT", "settings": {"speed_change": 1.1}}
+        )
         assert diff is not None
 
     def test_mods_list(self):
@@ -39,11 +41,11 @@ class TestConstruction:
 
     def test_invalid_kwarg(self):
         with pytest.raises(ArgsError):
-            rosu.Difficulty(nonsense=1)
+            rosu.Difficulty(nonsense=1)  # type: ignore
 
     def test_invalid_kwarg_type(self):
         with pytest.raises(TypeError):
-            rosu.Difficulty(clock_rate="fast")
+            rosu.Difficulty(clock_rate="fast")  # type: ignore
 
 
 class TestSetters:
@@ -116,7 +118,9 @@ class TestCalculate:
     ):
         stars = rosu.Difficulty().calculate(osu_map).stars
 
-        assert rosu.Difficulty().calculate(osu_map_content).stars == pytest.approx(stars)
+        assert rosu.Difficulty().calculate(osu_map_content).stars == pytest.approx(
+            stars
+        )
         assert rosu.Difficulty().calculate(osu_map_bytes).stars == pytest.approx(stars)
 
     def test_repr(self, diff, osu_map):

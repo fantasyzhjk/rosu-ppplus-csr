@@ -105,7 +105,7 @@ Mods accept the same shapes as `rosu-pp-py`: legacy bitflags, acronym strings,
 `GameMod` dicts, or a list mixing those.
 
 ```python
-rosu.Difficulty(mods=8 + 64)          # HD + DT
+rosu.Difficulty(mods=8 + 64)  # HD + DT
 rosu.Difficulty(mods="HDDT")
 rosu.Difficulty(mods={"acronym": "DT", "settings": {"speed_change": 1.1}})
 rosu.Difficulty(mods=["HD", {"acronym": "DT", "settings": {"speed_change": 1.1}}])
@@ -157,7 +157,7 @@ deliberate differences exist:
 - `Beatmap.is_suspicious()` additionally accepts `mode=` and `mods=`; called
   without arguments it behaves exactly like `rosu-pp-py`.
 
-`Rosu-ppplus-py` version tracks the underlying `rosu-pp` fork, not the
+`rosu-ppplus-py` version tracks the underlying `rosu-pp` fork, not the
 upstream `rosu-pp-py` release line.
 
 ## License

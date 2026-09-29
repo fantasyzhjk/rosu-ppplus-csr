@@ -16,11 +16,11 @@ class TestConstruction:
 
     def test_no_argument(self):
         with pytest.raises(rosu.ArgsError):
-            rosu.Beatmap()
+            rosu.Beatmap()  # type: ignore
 
     def test_invalid_kwarg(self):
         with pytest.raises(rosu.ArgsError):
-            rosu.Beatmap(nonsense="x")
+            rosu.Beatmap(nonsense="x")  # type: ignore
 
     def test_missing_file(self):
         with pytest.raises(ParseError):

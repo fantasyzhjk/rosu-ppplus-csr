@@ -19,7 +19,7 @@ def main(path: str) -> None:
     print(f"  {attrs_text} @ {map_.bpm:.2f} BPM")
     print()
 
-    for mods in ("NM", "HDHR", [{"acronym":"DT","settings":{"speed_change":2}}]):
+    for mods in ("NM", "HDHR", [{"acronym": "DT", "settings": {"speed_change": 2}}]):
         diff = rosu.Difficulty(mods=mods)  # type: ignore
 
         attrs = diff.calculate(map_)

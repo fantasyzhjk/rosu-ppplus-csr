@@ -30,10 +30,11 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = [
-    "E",    # pycodestyle errors
-    "F",    # pyflakes
-    "I",    # isort
-    "UP",   # pyupgrade
+    "E",
+    "F",
+    "I",
+    "B",
+    "SIM",
 ]
 ignore = ["E501"]  # docstrings in stubs are hard to wrap
 
